@@ -1,1 +1,621 @@
-hello there
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valentine Scroll</title>
+  <meta name="description" content="O pagină cu întrebări de dragoste animate, cu Lenis + GSAP." />
+
+  <style>
+    :root{
+      --bg1:#fff7fb;
+      --bg2:#f7fbff;
+      --bg3:#fff9f2;
+      --ink:#2b2b2b;
+      --muted:#5a5a5a;
+      --card:#ffffffcc;
+      --stroke:#ffffff80;
+      --accent:#ff4d7d;
+      --accent2:#ff86a6;
+      --shadow: 0 18px 50px rgba(25, 25, 25, .10);
+      --radius: 28px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      background: radial-gradient(1200px 800px at 10% 10%, #ffe3ef 0%, transparent 60%),
+                  radial-gradient(900px 700px at 90% 30%, #dff1ff 0%, transparent 55%),
+                  radial-gradient(900px 700px at 40% 90%, #fff0d8 0%, transparent 60%),
+                  linear-gradient(180deg, #fff 0%, #fff 100%);
+      overflow-x:hidden;
+    }
+
+    #hearts {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .9;
+    }
+
+    .grain{
+      position: fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:1;
+      opacity:.07;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+      mix-blend-mode:multiply;
+    }
+
+    header{
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 14px;
+      border-radius: 999px;
+      background: #ffffffb5;
+      border: 1px solid var(--stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      user-select:none;
+      max-width: calc(100vw - 24px);
+    }
+    header .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff 0%, var(--accent) 45%, #c8214c 100%);
+      box-shadow: 0 6px 18px rgba(255,77,125,.35);
+      flex: 0 0 auto;
+    }
+    header .hint{
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    main{
+      position: relative;
+      z-index: 2;
+    }
+
+    section{
+      min-height: 100vh;
+      display:grid;
+      place-items:center;
+      padding: 90px 20px 70px;
+    }
+
+    .wrap{
+      width: min(980px, 92vw);
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items:center;
+    }
+    @media (max-width: 860px){
+      section{ padding: 86px 16px 64px; }
+      .wrap{ grid-template-columns:1fr; gap:14px; }
+      .card{ padding: 22px 18px 20px; border-radius: 24px; }
+      .mini{ padding: 16px 16px 14px; }
+    }
+
+    .card{
+      position: relative;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      padding: 28px 28px 26px;
+      overflow:hidden;
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #7a2b44;
+      background: linear-gradient(90deg, #ffe3ee, #e6f4ff);
+      border: 1px solid #ffffffc9;
+      letter-spacing:.35px;
+      text-transform: uppercase;
+    }
+    .kicker i{
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 8px 18px rgba(255,77,125,.35);
+      display:inline-block;
+    }
+
+    h1, h2{
+      margin: 14px 0 10px;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    h1{ font-size: clamp(34px, 5.4vw, 64px); }
+    h2{ font-size: clamp(28px, 4.2vw, 48px); }
+
+    p{
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: clamp(16px, 1.8vw, 18px);
+      line-height: 1.65;
+    }
+
+    .side{
+      display:grid;
+      gap: 12px;
+    }
+
+    .mini{
+      border-radius: 20px;
+      background: #ffffffb8;
+      border: 1px solid var(--stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.05);
+      padding: 18px 18px 16px;
+    }
+    .mini .label{
+      font-size:12px;
+      color:#7b3b52;
+      opacity:.9;
+      letter-spacing:.25px;
+      margin-bottom:8px;
+    }
+    .mini .big{
+      font-size: 18px;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .bg-sheen{
+      position:absolute;
+      inset:-40% -30% auto -30%;
+      height: 140%;
+      transform: rotate(10deg);
+      background: radial-gradient(closest-side, rgba(255,77,125,.16), transparent 70%),
+                  radial-gradient(closest-side, rgba(97,196,255,.14), transparent 70%);
+      filter: blur(18px);
+      pointer-events:none;
+    }
+
+    .badgeRow{
+      margin-top: 18px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .badge{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: #ffffffa6;
+      font-size: 13px;
+      color: #4b4b4b;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .badge svg{ width:16px; height:16px; }
+
+    .final{
+      text-align:center;
+    }
+    .cta{
+      margin-top: 18px;
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    button{
+      appearance:none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 15px;
+      cursor:pointer;
+      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      box-shadow: 0 14px 30px rgba(255,77,125,.22);
+      touch-action: manipulation;
+    }
+    .yes{
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #fff;
+      min-width: 140px;
+    }
+    .no{
+      background: #ffffffcc;
+      border: 1px solid var(--stroke);
+      color: #444;
+      box-shadow: 0 14px 30px rgba(0,0,0,.08);
+      min-width: 160px;
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: #ffffffd8;
+      border: 1px solid var(--stroke);
+      box-shadow: 0 18px 60px rgba(0,0,0,.10);
+      border-radius: 999px;
+      padding: 10px 14px;
+      z-index: 20;
+      font-size: 14px;
+      color: #3f3f3f;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events:none;
+      max-width: calc(100vw - 24px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scrollCue{
+      margin-top: 18px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:#6a6a6a;
+      font-size: 13px;
+      user-select:none;
+    }
+    .mouse{
+      width: 22px; height: 34px;
+      border-radius: 12px;
+      border: 1px solid #ffffffaa;
+      background: #ffffff7a;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+    .mouse::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:7px;
+      width:4px;height:4px;border-radius:50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="hearts"></canvas>
+  <div class="grain"></div>
+
+  <header>
+    <span class="dot"></span>
+    <span class="hint">Hello puiul, scoll in jos!</span>
+  </header>
+
+  <main id="page">
+    <!-- 1 -->
+    <section class="panel" data-theme="a">
+      <div class="wrap">
+        <div class="card hero">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> to Mada</span>
+          <h1 class="title">Vrei să-ți arăt ceva simplu, dar făcut cu tot dragul?</h1>
+        
+        </div>
+
+       
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="panel" data-theme="b">
+      <div class="wrap">
+        <div class="card">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> pasul 2</span>
+          <h2 class="title">Mai jos.</h2>
+          <p class="subtitle">da, pls</p>
+        </div>
+     
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="panel" data-theme="c">
+      <div class="wrap">
+        <div class="card">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> pasul 3</span>
+          <h2 class="title">Si mai jos</h2>
+        </div>
+    
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="panel" data-theme="d">
+      <div class="wrap">
+        <div class="card">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> pasul 4</span>
+          <h2 class="title">Te-ai plicti?</h2>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="panel" data-theme="e">
+      <div class="wrap">
+        <div class="card">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> pasul 5</span>
+          <h2 class="title">Promit ca merita!!!</h2>
+          <p class="subtitle">:)</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="panel" data-theme="f">
+      <div class="wrap">
+        <div class="card">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> pasul 6</span>
+          <h2 class="title">Te iubesc!</h2>
+          <p class="subtitle">Te iubesc, dar scris mai mic!</p>
+        </div>
+       
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="panel final" data-theme="g">
+      <div class="wrap" style="grid-template-columns:1fr;">
+        <div class="card" style="text-align:center;">
+          <div class="bg-sheen"></div>
+          <span class="kicker"><i></i> ultimul pas</span>
+          <h2 class="title">Vrei să fii Valentine-ul meu?</h2>
+
+          <div class="cta">
+            <button class="yes" id="yesBtn">Da 💗</button>
+            <button class="no" id="noBtn">Tot da, dar cu alb 🙂</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <script>
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      smoothTouch: false
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.lagSmoothing(0);
+
+    const panels = document.querySelectorAll('.panel');
+
+    panels.forEach((panel) => {
+      const title = panel.querySelector('.title');
+      const subtitle = panel.querySelector('.subtitle');
+      const cards = panel.querySelectorAll('.card, .mini, .badge');
+
+      gsap.set([title, subtitle], { willChange: 'transform, opacity, filter' });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: panel,
+          start: 'top 70%',
+          end: 'bottom 40%',
+          toggleActions: 'play none none reverse'
+        }
+      });
+
+      tl.fromTo(title,
+        { y: 26, opacity: 0, filter: 'blur(6px)' },
+        { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.7, ease: 'power2.out' },
+        0
+      ).fromTo(subtitle,
+        { y: 18, opacity: 0, filter: 'blur(6px)' },
+        { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.65, ease: 'power2.out' },
+        0.1
+      );
+
+      if (cards && cards.length) {
+        tl.fromTo(cards,
+          { y: 18, opacity: 0, filter: 'blur(6px)' },
+          { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out', stagger: 0.06 },
+          0.05
+        );
+      }
+
+      gsap.fromTo(panel,
+        { backgroundPosition: '50% 0%' },
+        {
+          backgroundPosition: '50% 100%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: panel,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.4
+          }
+        }
+      );
+    });
+
+    const toast = document.getElementById('toast');
+    let toastTween;
+    function showToast(text){
+      toast.textContent = text;
+      if (toastTween) toastTween.kill();
+      toastTween = gsap.timeline()
+        .set(toast, { y: 10 })
+        .to(toast, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out' })
+        .to(toast, { opacity: 1, duration: 1.3 })
+        .to(toast, { opacity: 0, y: 10, duration: 0.25, ease: 'power2.in' });
+    }
+
+    document.getElementById('yesBtn').addEventListener('click', () => {
+      showToast('Yay. 💗');
+      burstHearts(18);
+    });
+
+    document.getElementById('noBtn').addEventListener('click', () => {
+      showToast('Ok 🙂');
+      lenis.scrollTo(window.scrollY + window.innerHeight * 0.35, { immediate: false, duration: 1.0 });
+    });
+
+    const canvas = document.getElementById('hearts');
+    const ctx = canvas.getContext('2d');
+
+    function resize(){
+      canvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+      canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const hearts = [];
+    const rand = (a,b)=> a + Math.random()*(b-a);
+
+    function heartPath(x, y, size){
+      const s = size;
+      ctx.beginPath();
+      ctx.moveTo(x, y + s * 0.28);
+      ctx.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.28);
+      ctx.bezierCurveTo(x - s * 0.5, y + s * 0.65, x, y + s * 0.88, x, y + s);
+      ctx.bezierCurveTo(x, y + s * 0.88, x + s * 0.5, y + s * 0.65, x + s * 0.5, y + s * 0.28);
+      ctx.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.28);
+      ctx.closePath();
+    }
+
+    function spawnHeart(extra=false){
+      const size = rand(10, 22);
+      hearts.push({
+        x: rand(0, window.innerWidth),
+        y: window.innerHeight + rand(0, window.innerHeight * 0.25),
+        vy: rand(0.5, 1.3) * (extra ? 1.8 : 1),
+        vx: rand(-0.25, 0.25),
+        size,
+        rot: rand(-0.25, 0.25),
+        vr: rand(-0.01, 0.01),
+        alpha: rand(0.35, 0.85),
+        hue: rand(330, 360),
+      });
+      if (hearts.length > 140) hearts.splice(0, hearts.length - 140);
+    }
+
+    for (let i=0;i<36;i++) spawnHeart();
+
+    function burstHearts(n=12){
+      for (let i=0;i<n;i++){
+        const size = rand(10, 20);
+        hearts.push({
+          x: window.innerWidth * 0.5 + rand(-120, 120),
+          y: window.innerHeight * 0.72 + rand(-40, 40),
+          vy: rand(1.2, 2.4),
+          vx: rand(-1.2, 1.2),
+          size,
+          rot: rand(-0.5, 0.5),
+          vr: rand(-0.03, 0.03),
+          alpha: rand(0.55, 0.95),
+          hue: rand(330, 360),
+          burst: true
+        });
+      }
+    }
+
+    let last = performance.now();
+    function draw(now){
+      const dt = Math.min(32, now - last);
+      last = now;
+
+      ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+
+      if (Math.random() < 0.22) spawnHeart();
+
+      hearts.forEach(h=>{
+        h.y -= h.vy * (dt/16);
+        h.x += h.vx * (dt/16);
+        h.rot += h.vr * (dt/16);
+
+        if (h.y < -h.size * 2) {
+          h.y = window.innerHeight + h.size * 2;
+          h.x = rand(0, window.innerWidth);
+          h.vy = rand(0.5, 1.3);
+          h.vx = rand(-0.25, 0.25);
+          h.burst = false;
+        }
+        if (h.x < -40) h.x = window.innerWidth + 40;
+        if (h.x > window.innerWidth + 40) h.x = -40;
+
+        ctx.save();
+        ctx.translate(h.x, h.y);
+        ctx.rotate(h.rot);
+
+        ctx.shadowColor = `hsla(${h.hue}, 90%, 65%, ${Math.min(0.35, h.alpha)})`;
+        ctx.shadowBlur = 14;
+
+        heartPath(0, 0, h.size);
+
+        ctx.fillStyle = `hsla(${h.hue}, 90%, 68%, ${h.alpha})`;
+        ctx.fill();
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(255,255,255,0.55)`;
+        ctx.stroke();
+
+        ctx.restore();
+      });
+
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+    gsap.fromTo('header',
+      { y: -12, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.7, ease: 'power2.out', delay: 0.1 }
+    );
+  </script>
+</body>
+</html>
